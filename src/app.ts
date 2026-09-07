@@ -1,6 +1,7 @@
 import express, { type Request, type Response } from 'express';
 import { errorHandler } from './middleware/errorHandler.js';
 import taskRoutes from './routes/taskRoutes.js';
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 const PORT = 3000;
@@ -12,6 +13,8 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 app.use(taskRoutes);
+
+app.use("/auth", authRoutes);
 
 // The error handler MUST be the last middleware used in the pipeline
 app.use(errorHandler);
