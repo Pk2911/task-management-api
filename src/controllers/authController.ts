@@ -1,6 +1,8 @@
 import type { Request, Response } from "express";
 import {
   loginUser,
+  logoutUser,
+  refreshAccessToken,
   registerUser,
 } from "../services/authService.js";
 
@@ -25,15 +27,45 @@ export async function login(
 ) {
   const { email, password } = req.body;
 
-  const { user, accessToken } = await loginUser(
-    email,
-    password,
-  );
+  const {
+    user,
+    accessToken,
+    refreshToken,
+  } = await loginUser(email, password);
 
   res.json({
     id: user.id,
     email: user.email,
     role: user.role,
     accessToken,
+    refreshToken,
   });
+}
+
+export function refresh(
+  req: Request,
+  res: Response,
+) {
+  const { refreshToken } = req.body;
+
+  const {
+    accessToken,
+    refreshToken: newRefreshToken,
+  } = refreshAccessToken(refreshToken);
+
+  res.json({
+    accessToken,
+    refreshToken: newRefreshToken,
+  });
+}
+
+export function logout(
+  req: Request,
+  res: Response,
+) {
+  const { refreshToken } = req.body;
+
+  logoutUser(refreshToken);
+
+  res.status(204).send();
 }

@@ -2,9 +2,19 @@ import bcrypt from "bcrypt";
 import {
   createUser,
   getUserByEmail,
+  getUserById,
 } from "../repositories/userRepository.js";
+import {
+  createRefreshToken,
+  getRefreshTokenByJti,
+  revokeRefreshToken,
+} from "../repositories/refreshTokenRepository.js";
 import { AppError } from "../middleware/errorHandler.js";
-import { generateAccessToken } from "../utils/jwt.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/jwt.js";
 
 export async function registerUser(
   email: string,
@@ -52,8 +62,123 @@ export async function loginUser(
     user.role,
   );
 
+  const {
+    token: refreshToken,
+    jti,
+  } = generateRefreshToken(user.id);
+
+  createRefreshToken({
+    jti,
+    userId: user.id,
+    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+    revoked: false,
+  });
+
   return {
     user,
     accessToken,
+    refreshToken,
   };
+}
+
+export function refreshAccessToken(
+  refreshToken: string,
+) {
+  try {
+    const { userId, jti } =
+      verifyRefreshToken(refreshToken);
+
+    const storedToken =
+      getRefreshTokenByJti(jti);
+
+    if (
+      !storedToken ||
+      storedToken.revoked ||
+      storedToken.userId !== userId ||
+      storedToken.expiresAt < Date.now()
+    ) {
+      throw new AppError(
+        "Invalid refresh token",
+        401,
+      );
+    }
+
+    revokeRefreshToken(jti);
+
+    const user = getUserById(userId);
+
+    if (!user) {
+      throw new AppError(
+        "Invalid refresh token",
+        401,
+      );
+    }
+
+    const accessToken = generateAccessToken(
+      user.id,
+      user.role,
+    );
+
+    const {
+      token: newRefreshToken,
+      jti: newJti,
+    } = generateRefreshToken(user.id);
+
+    createRefreshToken({
+      jti: newJti,
+      userId: user.id,
+      expiresAt:
+        Date.now() + 7 * 24 * 60 * 60 * 1000,
+      revoked: false,
+    });
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new AppError(
+      "Invalid refresh token",
+      401,
+    );
+  }
+}
+
+export function logoutUser(
+  refreshToken: string,
+) {
+  try {
+    const { userId, jti } =
+      verifyRefreshToken(refreshToken);
+
+    const storedToken =
+      getRefreshTokenByJti(jti);
+
+    if (
+      !storedToken ||
+      storedToken.revoked ||
+      storedToken.userId !== userId ||
+      storedToken.expiresAt < Date.now()
+    ) {
+      throw new AppError(
+        "Invalid refresh token",
+        401,
+      );
+    }
+
+    revokeRefreshToken(jti);
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
+    throw new AppError(
+      "Invalid refresh token",
+      401,
+    );
+  }
 }

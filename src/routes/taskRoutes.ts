@@ -1,5 +1,6 @@
-import { authenticateToken } from "../middleware/authMiddleware.js";
 import { Router } from "express";
+import { authenticateToken } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 import {
   getTasks,
@@ -20,9 +21,16 @@ import { validate } from "../middleware/validate.js";
 
 const router = Router();
 
-router.get("/tasks", authenticateToken, getTasks);
+router.get(
+  "/tasks",
+  authenticateToken,
+  getTasks,
+);
 
-router.get("/tasks/:id", getTask);
+router.get(
+  "/tasks/:id",
+  getTask,
+);
 
 router.post(
   "/tasks",
@@ -36,10 +44,15 @@ router.patch(
   updateTask,
 );
 
-router.delete("/tasks/:id", deleteTask);
+router.delete(
+  "/tasks/:id",
+  deleteTask,
+);
 
 router.patch(
   "/tasks/:id/assign",
+  authenticateToken,
+  authorizeRoles("admin"),
   validate(assignTaskSchema),
   assignTaskToUser,
 );
