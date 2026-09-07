@@ -1,6 +1,10 @@
 import bcrypt from "bcrypt";
-import { createUser, getUserByEmail } from "../repositories/userRepository.js";
+import {
+  createUser,
+  getUserByEmail,
+} from "../repositories/userRepository.js";
 import { AppError } from "../middleware/errorHandler.js";
+import { generateAccessToken } from "../utils/jwt.js";
 
 export async function registerUser(
   email: string,
@@ -43,5 +47,13 @@ export async function loginUser(
     throw new AppError("Invalid email or password", 401);
   }
 
-  return user;
+  const accessToken = generateAccessToken(
+    user.id,
+    user.role,
+  );
+
+  return {
+    user,
+    accessToken,
+  };
 }

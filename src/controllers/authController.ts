@@ -1,7 +1,13 @@
 import type { Request, Response } from "express";
-import { loginUser, registerUser } from "../services/authService.js";
+import {
+  loginUser,
+  registerUser,
+} from "../services/authService.js";
 
-export async function register(req: Request, res: Response) {
+export async function register(
+  req: Request,
+  res: Response,
+) {
   const { email, password } = req.body;
 
   const user = await registerUser(email, password);
@@ -13,14 +19,21 @@ export async function register(req: Request, res: Response) {
   });
 }
 
-export async function login(req: Request, res: Response) {
+export async function login(
+  req: Request,
+  res: Response,
+) {
   const { email, password } = req.body;
 
-  const user = await loginUser(email, password);
+  const { user, accessToken } = await loginUser(
+    email,
+    password,
+  );
 
   res.json({
     id: user.id,
     email: user.email,
     role: user.role,
+    accessToken,
   });
 }

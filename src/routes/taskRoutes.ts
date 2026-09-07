@@ -1,3 +1,4 @@
+import { authenticateToken } from "../middleware/authMiddleware.js";
 import { Router } from "express";
 
 import {
@@ -19,7 +20,7 @@ import { validate } from "../middleware/validate.js";
 
 const router = Router();
 
-router.get("/tasks", getTasks);
+router.get("/tasks", authenticateToken, getTasks);
 
 router.get("/tasks/:id", getTask);
 

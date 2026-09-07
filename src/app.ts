@@ -2,6 +2,7 @@ import express, { type Request, type Response } from 'express';
 import { errorHandler } from './middleware/errorHandler.js';
 import taskRoutes from './routes/taskRoutes.js';
 import authRoutes from "./routes/authRoutes.js";
+import "dotenv/config";
 
 const app = express();
 const PORT = 3000;
@@ -12,7 +13,7 @@ app.get('/health', (req: Request, res: Response) => {
     res.json({ status: 'API is running' });
 });
 
-app.use(taskRoutes);
+app.use("/",taskRoutes);
 
 app.use("/auth", authRoutes);
 
