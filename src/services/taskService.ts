@@ -1,3 +1,5 @@
+import { prisma } from "../lib/prisma.js";
+
 import {
   getAllTasks,
   getTaskById,
@@ -48,4 +50,28 @@ export async function removeTask(id: number) {
 
 export async function assignTask(id: number, userId: number) {
   return await updateTask(id, { userId });
+}
+
+export async function moveTaskToDone(
+  taskId: number,
+  userId: number,
+) {
+  return await prisma.$transaction(async (tx) => {
+    const task = await tx.task.update({
+      where: { id: taskId },
+      data: {
+        status: "DONE",
+      },
+    });
+
+    await tx.auditLog.create({
+      data: {
+        action: "TASK_MOVED_TO_DONE",
+        taskId,
+        userId,
+      },
+    });
+
+    return task;
+  });
 }

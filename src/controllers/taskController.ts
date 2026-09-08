@@ -7,6 +7,7 @@ import {
   editTask,
   removeTask,
   assignTask,
+  moveTaskToDone,
 } from "../services/taskService.js";
 
 import { AppError } from "../middleware/errorHandler.js";
@@ -62,7 +63,9 @@ export async function deleteTask(req: Request, res: Response) {
   } catch (error) {
     if (
       error instanceof Error &&
-      error.message.includes("Record to delete does not exist")
+      error.message.includes(
+        "Record to delete does not exist",
+      )
     ) {
       throw new AppError("Task not found", 404);
     }
@@ -73,7 +76,10 @@ export async function deleteTask(req: Request, res: Response) {
   res.status(204).send();
 }
 
-export async function assignTaskToUser(req: Request, res: Response) {
+export async function assignTaskToUser(
+  req: Request,
+  res: Response,
+) {
   const taskId = Number(req.params.id);
   const userId = Number(req.body.userId);
 
@@ -82,6 +88,18 @@ export async function assignTaskToUser(req: Request, res: Response) {
   if (!task) {
     throw new AppError("Task not found", 404);
   }
+
+  res.json(task);
+}
+
+export async function moveTaskToDoneController(
+  req: Request,
+  res: Response,
+) {
+  const taskId = Number(req.params.id);
+  const userId = req.user!.userId;
+
+  const task = await moveTaskToDone(taskId, userId);
 
   res.json(task);
 }

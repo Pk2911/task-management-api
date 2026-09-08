@@ -1,4 +1,5 @@
 import { Router } from "express";
+
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
@@ -9,6 +10,7 @@ import {
   updateTask,
   deleteTask,
   assignTaskToUser,
+  moveTaskToDoneController,
 } from "../controllers/taskController.js";
 
 import {
@@ -55,6 +57,12 @@ router.patch(
   authorizeRoles("admin"),
   validate(assignTaskSchema),
   assignTaskToUser,
+);
+
+router.patch(
+  "/tasks/:id/done",
+  authenticateToken,
+  moveTaskToDoneController,
 );
 
 export default router;
