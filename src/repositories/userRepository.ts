@@ -32,3 +32,24 @@ export async function createUser(
     },
   });
 }
+
+export async function deleteUser(
+  id: number,
+): Promise<User | undefined> {
+  try {
+    return await prisma.user.delete({
+      where: { id },
+    });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes(
+        "Record to delete does not exist",
+      )
+    ) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}

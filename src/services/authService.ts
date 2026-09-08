@@ -4,6 +4,7 @@ import {
   createUser,
   getUserByEmail,
   getUserById,
+  deleteUser,
 } from "../repositories/userRepository.js";
 
 import {
@@ -145,4 +146,14 @@ export async function logoutUser(refreshToken: string) {
 
     throw new AppError("Invalid refresh token", 401);
   }
+}
+
+export async function removeUser(id: number) {
+  const user = await deleteUser(id);
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  return user;
 }

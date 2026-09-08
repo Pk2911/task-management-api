@@ -5,9 +5,11 @@ import {
   logout,
   refresh,
   register,
+  deleteUser,
 } from "../controllers/authController.js";
 
 import { validate } from "../middleware/validate.js";
+
 import { loginLimiter } from "../middleware/rateLimiter.js";
 
 import {
@@ -15,6 +17,9 @@ import {
   refreshTokenSchema,
   registerSchema,
 } from "../schemas/authSchema.js";
+
+import { authenticateToken } from "../middleware/authMiddleware.js";
+import { authorizeRoles } from "../middleware/roleMiddleware.js";
 
 const router = Router();
 
@@ -41,6 +46,13 @@ router.post(
   "/logout",
   validate(refreshTokenSchema),
   logout,
+);
+
+router.delete(
+  "/users/:id",
+  authenticateToken,
+  authorizeRoles("admin"),
+  deleteUser,
 );
 
 export default router;
