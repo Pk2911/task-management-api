@@ -354,6 +354,6 @@ npm run build
 
 ```
 
-`Then save it.`
+Then save it.
 
 ```
