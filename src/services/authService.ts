@@ -1,26 +1,27 @@
 import bcrypt from "bcrypt";
+
 import {
   createUser,
   getUserByEmail,
   getUserById,
 } from "../repositories/userRepository.js";
+
 import {
   createRefreshToken,
   getRefreshTokenByJti,
   revokeRefreshToken,
 } from "../repositories/refreshTokenRepository.js";
+
 import { AppError } from "../middleware/errorHandler.js";
+
 import {
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
 } from "../utils/jwt.js";
 
-export async function registerUser(
-  email: string,
-  password: string,
-) {
-  const existingUser = getUserByEmail(email);
+export async function registerUser(email: string, password: string) {
+  const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
     throw new AppError("User already exists", 409);
@@ -28,8 +29,7 @@ export async function registerUser(
 
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = createUser({
-    id: Date.now(),
+  const user = await createUser({
     email,
     passwordHash,
     role: "member",
@@ -38,11 +38,8 @@ export async function registerUser(
   return user;
 }
 
-export async function loginUser(
-  email: string,
-  password: string,
-) {
-  const user = getUserByEmail(email);
+export async function loginUser(email: string, password: string) {
+  const user = await getUserByEmail(email);
 
   if (!user) {
     throw new AppError("Invalid email or password", 401);
@@ -57,17 +54,11 @@ export async function loginUser(
     throw new AppError("Invalid email or password", 401);
   }
 
-  const accessToken = generateAccessToken(
-    user.id,
-    user.role,
-  );
+  const accessToken = generateAccessToken(user.id, user.role);
 
-  const {
-    token: refreshToken,
-    jti,
-  } = generateRefreshToken(user.id);
+  const { token: refreshToken, jti } = generateRefreshToken(user.id);
 
-  createRefreshToken({
+  await createRefreshToken({
     jti,
     userId: user.id,
     expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
@@ -81,15 +72,11 @@ export async function loginUser(
   };
 }
 
-export function refreshAccessToken(
-  refreshToken: string,
-) {
+export async function refreshAccessToken(refreshToken: string) {
   try {
-    const { userId, jti } =
-      verifyRefreshToken(refreshToken);
+    const { userId, jti } = verifyRefreshToken(refreshToken);
 
-    const storedToken =
-      getRefreshTokenByJti(jti);
+    const storedToken = await getRefreshTokenByJti(jti);
 
     if (
       !storedToken ||
@@ -97,38 +84,28 @@ export function refreshAccessToken(
       storedToken.userId !== userId ||
       storedToken.expiresAt < Date.now()
     ) {
-      throw new AppError(
-        "Invalid refresh token",
-        401,
-      );
+      throw new AppError("Invalid refresh token", 401);
     }
 
-    revokeRefreshToken(jti);
+    await revokeRefreshToken(jti);
 
-    const user = getUserById(userId);
+    const user = await getUserById(userId);
 
     if (!user) {
-      throw new AppError(
-        "Invalid refresh token",
-        401,
-      );
+      throw new AppError("Invalid refresh token", 401);
     }
 
-    const accessToken = generateAccessToken(
-      user.id,
-      user.role,
-    );
+    const accessToken = generateAccessToken(user.id, user.role);
 
     const {
       token: newRefreshToken,
       jti: newJti,
     } = generateRefreshToken(user.id);
 
-    createRefreshToken({
+    await createRefreshToken({
       jti: newJti,
       userId: user.id,
-      expiresAt:
-        Date.now() + 7 * 24 * 60 * 60 * 1000,
+      expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
       revoked: false,
     });
 
@@ -141,22 +118,15 @@ export function refreshAccessToken(
       throw error;
     }
 
-    throw new AppError(
-      "Invalid refresh token",
-      401,
-    );
+    throw new AppError("Invalid refresh token", 401);
   }
 }
 
-export function logoutUser(
-  refreshToken: string,
-) {
+export async function logoutUser(refreshToken: string) {
   try {
-    const { userId, jti } =
-      verifyRefreshToken(refreshToken);
+    const { userId, jti } = verifyRefreshToken(refreshToken);
 
-    const storedToken =
-      getRefreshTokenByJti(jti);
+    const storedToken = await getRefreshTokenByJti(jti);
 
     if (
       !storedToken ||
@@ -164,21 +134,15 @@ export function logoutUser(
       storedToken.userId !== userId ||
       storedToken.expiresAt < Date.now()
     ) {
-      throw new AppError(
-        "Invalid refresh token",
-        401,
-      );
+      throw new AppError("Invalid refresh token", 401);
     }
 
-    revokeRefreshToken(jti);
+    await revokeRefreshToken(jti);
   } catch (error) {
     if (error instanceof AppError) {
       throw error;
     }
 
-    throw new AppError(
-      "Invalid refresh token",
-      401,
-    );
+    throw new AppError("Invalid refresh token", 401);
   }
 }

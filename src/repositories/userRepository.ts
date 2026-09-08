@@ -1,16 +1,34 @@
+import { prisma } from "../lib/prisma.js";
 import type { User } from "../types/user.js";
 
-const users: User[] = [];
+export async function getUserByEmail(
+  email: string,
+): Promise<User | undefined> {
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
 
-export function getUserByEmail(email: string): User | undefined {
-  return users.find((user) => user.email === email);
+  return user ?? undefined;
 }
 
-export function getUserById(id: number): User | undefined {
-  return users.find((user) => user.id === id);
+export async function getUserById(
+  id: number,
+): Promise<User | undefined> {
+  const user = await prisma.user.findUnique({
+    where: { id },
+  });
+
+  return user ?? undefined;
 }
 
-export function createUser(user: User): User {
-  users.push(user);
-  return user;
+export async function createUser(
+  user: Omit<User, "id">,
+): Promise<User> {
+  return await prisma.user.create({
+    data: {
+      email: user.email,
+      passwordHash: user.passwordHash,
+      role: user.role,
+    },
+  });
 }

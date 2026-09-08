@@ -28,6 +28,7 @@ model User {
   comments     TaskComment[]
   auditLogs    AuditLog[]
   projects     Project[]   @relation("ProjectOwner")
+  refreshTokens RefreshToken[]
 
   createdAt    DateTime    @default(now())
 }
@@ -89,4 +90,17 @@ model AuditLog {
   user      User     @relation(fields: [userId], references: [id])
 
   @@index([taskId, createdAt])
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  jti       String   @unique
+  userId    Int
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

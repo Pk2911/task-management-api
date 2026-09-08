@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+
 import {
   loginUser,
   logoutUser,
@@ -6,10 +7,7 @@ import {
   registerUser,
 } from "../services/authService.js";
 
-export async function register(
-  req: Request,
-  res: Response,
-) {
+export async function register(req: Request, res: Response) {
   const { email, password } = req.body;
 
   const user = await registerUser(email, password);
@@ -21,17 +19,13 @@ export async function register(
   });
 }
 
-export async function login(
-  req: Request,
-  res: Response,
-) {
+export async function login(req: Request, res: Response) {
   const { email, password } = req.body;
 
-  const {
-    user,
-    accessToken,
-    refreshToken,
-  } = await loginUser(email, password);
+  const { user, accessToken, refreshToken } = await loginUser(
+    email,
+    password,
+  );
 
   res.json({
     id: user.id,
@@ -42,16 +36,13 @@ export async function login(
   });
 }
 
-export function refresh(
-  req: Request,
-  res: Response,
-) {
+export async function refresh(req: Request, res: Response) {
   const { refreshToken } = req.body;
 
   const {
     accessToken,
     refreshToken: newRefreshToken,
-  } = refreshAccessToken(refreshToken);
+  } = await refreshAccessToken(refreshToken);
 
   res.json({
     accessToken,
@@ -59,13 +50,10 @@ export function refresh(
   });
 }
 
-export function logout(
-  req: Request,
-  res: Response,
-) {
+export async function logout(req: Request, res: Response) {
   const { refreshToken } = req.body;
 
-  logoutUser(refreshToken);
+  await logoutUser(refreshToken);
 
   res.status(204).send();
 }
