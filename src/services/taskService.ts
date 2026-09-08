@@ -6,46 +6,46 @@ import {
   deleteTask,
 } from "../repositories/taskRepository.js";
 
-export function listTasks() {
-  return getAllTasks();
+export async function listTasks() {
+  return await getAllTasks();
 }
 
-export function findTask(id: number) {
-  return getTaskById(id);
+export async function findTask(id: number) {
+  return await getTaskById(id);
 }
 
-export function addTask(
+export async function addTask(
   title: string,
   description: string,
   dueDate?: string,
+  projectId?: number,
 ) {
-  const task = {
-    id: Date.now(),
+  return await createTask({
     title,
     description,
-    completed: false,
     dueDate,
-  };
-
-  return createTask(task);
+    projectId,
+  });
 }
 
-export function editTask(
+export async function editTask(
   id: number,
   data: Partial<{
     title: string;
     description: string;
-    completed: boolean;
+    status: "TODO" | "IN_PROGRESS" | "DONE";
     dueDate: string;
+    userId: number;
+    projectId: number;
   }>,
 ) {
-  return updateTask(id, data);
+  return await updateTask(id, data);
 }
 
-export function removeTask(id: number) {
-  return deleteTask(id);
+export async function removeTask(id: number) {
+  return await deleteTask(id);
 }
 
-export function assignTask(id: number, userId: number) {
-  return updateTask(id, { userId });
+export async function assignTask(id: number, userId: number) {
+  return await updateTask(id, { userId });
 }

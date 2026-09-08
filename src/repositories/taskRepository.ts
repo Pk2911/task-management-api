@@ -1,38 +1,57 @@
-import type { Task } from "../types/task.js";
+import { prisma } from "../lib/prisma.js";
 
-const tasks: Task[] = [];
-
-export function getAllTasks(): Task[] {
-  return tasks;
+export function getAllTasks() {
+  return prisma.task.findMany();
 }
 
-export function getTaskById(id: number): Task | undefined {
-  return tasks.find((task) => task.id === id);
+export function getTaskById(id: number) {
+  return prisma.task.findUnique({
+    where: { id },
+  });
 }
 
-export function createTask(task: Task): Task {
-  tasks.push(task);
-  return task;
+export function createTask(data: {
+  title: string;
+  description: string;
+  dueDate?: string;
+  projectId?: number;
+}) {
+  return prisma.task.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+      projectId: data.projectId,
+    },
+  });
 }
 
-export function updateTask(id: number, data: Partial<Task>): Task | undefined {
-  const task = getTaskById(id);
-
-  if (!task) {
-    return undefined;
-  }
-
-  Object.assign(task, data);
-  return task;
+export function updateTask(
+  id: number,
+  data: {
+    title?: string;
+    description?: string;
+    status?: "TODO" | "IN_PROGRESS" | "DONE";
+    dueDate?: string;
+    userId?: number;
+    projectId?: number;
+  },
+) {
+  return prisma.task.update({
+    where: { id },
+    data: {
+      title: data.title,
+      description: data.description,
+      status: data.status,
+      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+      userId: data.userId,
+      projectId: data.projectId,
+    },
+  });
 }
 
-export function deleteTask(id: number): boolean {
-  const index = tasks.findIndex((task) => task.id === id);
-
-  if (index === -1) {
-    return false;
-  }
-
-  tasks.splice(index, 1);
-  return true;
+export function deleteTask(id: number) {
+  return prisma.task.delete({
+    where: { id },
+  });
 }
