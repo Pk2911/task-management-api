@@ -6,6 +6,7 @@ import {
   refreshAccessToken,
   registerUser,
   removeUser,
+  listUsers,
 } from "../services/authService.js";
 
 export async function register(req: Request, res: Response) {
@@ -66,4 +67,13 @@ export async function deleteUser(req: Request, res: Response) {
   await removeUser(id);
 
   res.status(204).send();
+}
+
+export async function getUsers(
+  req: Request,
+  res: Response,
+) {
+  const users = await listUsers();
+
+  res.json(users);
 }

@@ -53,3 +53,17 @@ export async function deleteUser(
     throw error;
   }
 }
+
+export async function getAllUsers() {
+  return await prisma.user.findMany({
+    select: {
+      id: true,
+      email: true,
+      role: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
+}
+

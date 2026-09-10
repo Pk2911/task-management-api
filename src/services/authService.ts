@@ -5,6 +5,7 @@ import {
   getUserByEmail,
   getUserById,
   deleteUser,
+  getAllUsers,
 } from "../repositories/userRepository.js";
 
 import {
@@ -156,4 +157,8 @@ export async function removeUser(id: number) {
   }
 
   return user;
+}
+
+export async function listUsers() {
+  return await getAllUsers();
 }

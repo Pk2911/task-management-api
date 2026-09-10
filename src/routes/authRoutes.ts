@@ -6,6 +6,7 @@ import {
   refresh,
   register,
   deleteUser,
+  getUsers,
 } from "../controllers/authController.js";
 
 import { validate } from "../middleware/validate.js";
@@ -48,6 +49,13 @@ router.post(
   logout,
 );
 
+router.get(
+  "/users",
+  authenticateToken,
+  authorizeRoles("admin"),
+  getUsers,
+);
+
 router.delete(
   "/users/:id",
   authenticateToken,
@@ -56,3 +64,4 @@ router.delete(
 );
 
 export default router;
+

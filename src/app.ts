@@ -12,7 +12,7 @@ import taskRoutes from "./routes/taskRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
-const PORT = 3000;
+const PORT = 4000;
 
 app.use(helmet());
 app.use(cors());
